@@ -18,7 +18,16 @@ const userSchema = new Schema({
   password: {
     type: String,
   },
-
+  gender : String,
+  residence : String,
+  community : String,
+  education : String,
+  occupation : String,
+  district : String,
+  mandal : String,
+  village : String,
+  pconst : String,
+  aconst : String,
   isverified: {
     type: Boolean,
     required: true,

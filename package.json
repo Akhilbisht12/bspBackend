@@ -1,16 +1,17 @@
 {
-  "name": "courserabackend",
+  "name": "bhim_bata",
   "version": "1.0.0",
-  "description": "backend of coursera",
+  "description": "bhim_bata backend",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon app.js",
+    "start": "node app.js",
+    "dev" : "nodemon app.js",
     "test": "jest --watchAll --coverage --verbose --silent --runInBand"
   },
   "jest": {
     "testEnvironment": "node"
   },
-  "author": "Ayush",
+  "author": "Upgrately",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1053.0",

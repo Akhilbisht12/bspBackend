@@ -15,7 +15,7 @@ router.post(
       .custom((value, { req }) => {
         return User.findOne({ email: value }).then((user) => {
           if (user) {
-            return Promise.reject("Email already exists!");
+            return Promise.reject("Email or phone already exists!");
           }
         });
       }),
