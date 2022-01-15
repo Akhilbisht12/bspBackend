@@ -53,5 +53,6 @@ router.post('/course/delete',Auth.authentication,teacherController.deleteCourse)
 router.post('/course/edit',Auth.authentication,teacherController.editCourse);
 router.put('/course/Update',imageMulter,teacherController.updateCourse)
 router.post('/watchedByuser',teacherController.watchedByUsers)
+router.post('/getCourseCount',teacherController.getCourseCount)
 
 module.exports = router;

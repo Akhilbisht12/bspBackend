@@ -18,16 +18,16 @@ const userSchema = new Schema({
   password: {
     type: String,
   },
-  gender : String,
-  residence : String,
-  community : String,
-  education : String,
-  occupation : String,
-  district : String,
-  mandal : String,
-  village : String,
-  pconst : String,
-  aconst : String,
+  gender: String,
+  residence: String,
+  community: String,
+  education: String,
+  occupation: String,
+  district: String,
+  mandal: String,
+  village: String,
+  pconst: String,
+  aconst: String,
   isverified: {
     type: Boolean,
     required: true,
@@ -42,6 +42,16 @@ const userSchema = new Schema({
       type: Schema.Types.ObjectId,
       required: true,
       ref: "Course",
+    },
+  ],
+  watched: [
+    {
+      course: Schema.Types.ObjectId,
+      videos: [
+        {
+          video: Schema.Types.ObjectId,
+        },
+      ],
     },
   ],
 
