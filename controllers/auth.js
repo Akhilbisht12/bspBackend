@@ -509,8 +509,10 @@ exports.login = async (req, res, next) => {
         ? User.findOne({ email: identity })
         : User.findOne({ phone: identity });
     // User.findOne({ email: email }).then((user) => {
-      console.log(founduser)
-    const { email, phone } = founduser ? founduser : res.status(400).json({ message: "No user found" });
+    console.log(founduser);
+    const { email, phone } = founduser
+      ? founduser
+      : res.status(400).json({ message: "No user found" });
     founduser.then((user) => {
       console.log(user);
       if (!user) {
@@ -719,4 +721,13 @@ exports.newPassword = (req, res, next) => {
       }
       next(err);
     });
+};
+
+exports.getUser = async (req, res, next) => {
+  const userId = req.body.userId;
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(400).json({ message: "user not found" });
+  }
+  res.status(200).json({ user });
 };

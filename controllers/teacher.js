@@ -191,7 +191,6 @@ exports.getCourseCount = async (req, res, next) => {
     }
     check ? count++ : null;
   });
-  console.log(count)
   res
     .status(200)
     .json({ count: count, message: "user has watched " + count + " courses" });

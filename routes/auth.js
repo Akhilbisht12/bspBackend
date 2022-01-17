@@ -38,8 +38,8 @@ router.post(
         return User.findOne({ email: value }).then((user) => {
           if (user) {
             // return Promise.reject("Email already exists!");
-            const error = new Error('Email already exists')
-            throw error
+            const error = new Error("Email already exists");
+            throw error;
           }
         });
       }),
@@ -47,7 +47,7 @@ router.post(
   ],
   authController.signupPhone
 );
-router.post("/login_phone", authController.loginPhone)
+router.post("/login_phone", authController.loginPhone);
 router.post(
   "/login",
   [
@@ -70,6 +70,7 @@ router.post("/signup/resetOtp", authController.resetPassword);
 router.post("/signup/otp-resend", authController.resendOtp);
 router.post("/signup/checkOtp", authController.resetOtpVerification);
 router.post("/signup/reset-password", authController.newPassword);
+router.post("/getUser", Auth.authentication, authController.getUser);
 
 // google authentication route
 
