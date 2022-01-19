@@ -109,30 +109,30 @@ exports.signupPhone = async (req, res) => {
 
     const otpsave = await OTP.save();
     console.log(otp);
-    const sendOtp = new AWS.SNS({ apiVersion: "2010-03-31" })
-      .publish({
-        Message: `${otp} is your BSP Learning verification code`,
-        PhoneNumber: "+91" + phone,
-        MessageAttributes: {
-          "AWS.SNS.SMS.SenderID": {
-            DataType: "String",
-            StringValue: "BSPVERIFY",
-          },
-        },
-      })
-      .promise();
-    sendOtp
-      .then((response) => {
-        res.status(201).json({
-          message: "OTP sent to your Phone",
-          messageID: response.MessageId,
-        });
-      })
-      .catch((error) => {
-        const errorotp = new Error(error);
-        console.log(error);
-        throw errorotp;
-      });
+    // const sendOtp = new AWS.SNS({ apiVersion: "2010-03-31" })
+    //   .publish({
+    //     Message: `${otp} is your BSP Learning verification code`,
+    //     PhoneNumber: "+91" + phone,
+    //     MessageAttributes: {
+    //       "AWS.SNS.SMS.SenderID": {
+    //         DataType: "String",
+    //         StringValue: "BSPVERIFY",
+    //       },
+    //     },
+    //   })
+    //   .promise();
+    // sendOtp
+    //   .then((response) => {
+    //     res.status(201).json({
+    //       message: "OTP sent to your Phone",
+    //       messageID: response.MessageId,
+    //     });
+    //   })
+    //   .catch((error) => {
+    //     const errorotp = new Error(error);
+    //     console.log(error);
+    //     throw errorotp;
+    //   });
   } catch (error) {
     console.log(error);
   }
@@ -317,35 +317,48 @@ exports.signup = async (req, res) => {
 
     await OTP.save();
     console.log(otp);
-    const sendOtp = new AWS.SNS({ apiVersion: "2010-03-31" })
-      .publish({
-        Message: `${otp} is your BSP Learning verification code`,
-        PhoneNumber: "+91" + phone,
-        MessageAttributes: {
-          "AWS.SNS.SMS.SenderID": {
-            DataType: "String",
-            StringValue: "BSPVERIFY",
-          },
-        },
-      })
-      .promise();
-    sendOtp
-      .then((response) => {
-        console.log(response);
-        res.status(200).json({
-          message: "OTP has been sent to your phone",
-          redirect: true,
-          email: email,
-        });
-      })
-      .catch((error) => {
-        const errorotp = new Error(error);
-        console.log(error);
-        res.status(400).json({
-          message: "otp not sent",
-        });
-        throw errorotp;
-      });
+    // const sendOtp = new AWS.SNS({ apiVersion: "2010-03-31" })
+    //   .publish({
+    //     Message: `${otp} is your BSP Learning verification code`,
+    //     PhoneNumber: "+91" + phone,
+    //     MessageAttributes: {
+    //       "AWS.SNS.SMS.SenderID": {
+    //         DataType: "String",
+    //         StringValue: "BSPVERIFY",
+    //       },
+    //     },
+    //   })
+    //   .promise();
+    // sendOtp
+    //   .then((response) => {
+    //     console.log(response);
+    //     res.status(200).json({
+    //       message: "OTP has been sent to your phone",
+    //       redirect: true,
+    //       email: email,
+    //     });
+    //   })
+    //   .catch((error) => {
+    //     const errorotp = new Error(error);
+    //     console.log(error);
+    //     res.status(400).json({
+    //       message: "otp not sent",
+    //     });
+    //     throw errorotp;
+    //   });
+    transporter.sendMail({
+      to: email,
+      from: "akhil@upgrate.in",
+      subject: "OTP Verification",
+      html: ` '<h1>Please Verify your account using this OTP: !</h1>
+              <p>OTP:${otp}</p>'`,
+    });
+    res.status(200).json({
+      message: "OTP has been sent to your Email",
+      redirect: true,
+      email: email,
+    });
+    console.log("mail sent");
   } catch (error) {
     console.log(error);
   }
@@ -463,14 +476,18 @@ exports.resendOtp = (req, res, next) => {
         // res.status(201).json({ message: "OTP sent to your Email" });
       })
       .then(() => {
-        OTPHandler(otp, phone, res, email);
-        // transporter.sendMail({
-        //   to: email,
-        //   from: "ayush1911052@akgec.ac.in",
-        //   subject: "OTP Verification",
-        //   html: ` '<h1>Please Verify your account using this OTP: !</h1>
-        //               <p>OTP:${otp}</p>'`,
-        // });
+        transporter.sendMail({
+          to: email,
+          from: "akhil@upgrate.in",
+          subject: "OTP Verification",
+          html: ` '<h1>Please Verify your account using this OTP: !</h1>
+                  <p>OTP:${otp}</p>'`,
+        });
+        res.status(200).json({
+          message: "OTP has been sent to your Email",
+          redirect: true,
+          email: email,
+        });
         console.log("mail sent");
       })
 
@@ -530,12 +547,34 @@ exports.login = async (req, res, next) => {
             });
 
             OTP.save().then(() => {
-              OTPHandler(otp, phone, res, email);
+              transporter.sendMail({
+                to: email,
+                from: "akhil@upgrate.in",
+                subject: "OTP Verification",
+                html: ` '<h1>Please Verify your account using this OTP: !</h1>
+                        <p>OTP:${otp}</p>'`,
+              });
+              res.status(200).json({
+                message: "OTP has been sent to your Email",
+                redirect: true,
+                email: email,
+              });
             });
           } else {
             user.otp = otp;
             user.save().then(() => {
-              OTPHandler(otp, phone, res, email);
+              transporter.sendMail({
+                to: email,
+                from: "akhil@upgrate.in",
+                subject: "OTP Verification",
+                html: ` '<h1>Please Verify your account using this OTP: !</h1>
+                        <p>OTP:${otp}</p>'`,
+              });
+              res.status(200).json({
+                message: "OTP has been sent to your Email",
+                redirect: true,
+                email: email,
+              });
             });
           }
         });
@@ -590,11 +629,11 @@ exports.login = async (req, res, next) => {
 };
 
 exports.resetPassword = async (req, res, next) => {
-  const phone = req.body.phone;
-  console.log(phone);
+  const email = req.body.email;
+  console.log(email);
   let otp = Math.floor(100000 + Math.random() * 900000);
 
-  const found = await User.findOne({ phone: phone })
+  const found = await User.findOne({ email: email })
     .then((user) => {
       if (!user) {
         const error = new Error("Validation Failed");
@@ -606,13 +645,23 @@ exports.resetPassword = async (req, res, next) => {
         res.status(422).json({ message: " User doesn't exists" });
         throw error;
       } else {
-        const { email } = user;
         const new_otp = new Otp({
           otp: otp,
           email: email,
         });
         new_otp.save();
-        OTPHandler(otp, phone, res, email);
+        transporter.sendMail({
+          to: email,
+          from: "akhil@upgrate.in",
+          subject: "OTP Verification",
+          html: ` '<h1>Please Verify your account using this OTP: !</h1>
+                  <p>OTP:${otp}</p>'`,
+        });
+        res.status(200).json({
+          message: "OTP has been sent to your Email",
+          redirect: true,
+          email: email,
+        });
       }
     })
 
