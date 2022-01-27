@@ -28,6 +28,14 @@ const userSchema = new Schema({
   village: String,
   pconst: String,
   aconst: String,
+  profile: String,
+  meetings: [
+    {
+      date: Date,
+      agenda: String,
+      link: String,
+    },
+  ],
   isverified: {
     type: Boolean,
     required: true,

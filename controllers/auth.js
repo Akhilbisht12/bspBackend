@@ -7,13 +7,12 @@ const sendgridTransport = require("nodemailer-sendgrid-transport");
 const { validationResult } = require("express-validator");
 const api_key = require("../config/config");
 const AWS = require("aws-sdk");
-
+const S3 = require("aws-sdk/clients/s3");
 // const transporter =nodemailer.createTransport(sendgridTransport({
 //     auth:{
 //         api_key:api_key.Sendgrid
 //     }
 // }))
-
 let transporter = nodemailer.createTransport({
   host: api_key.smtp_host,
   port: api_key.smtp_pass,
@@ -22,6 +21,12 @@ let transporter = nodemailer.createTransport({
     user: api_key.smtp_user, // generated ethereal user
     pass: api_key.smtp_pass, // generated ethereal password
   },
+});
+
+const s3 = new S3({
+  region: process.env.AWS_REGION,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
 const OTPHandler = (otp, phone, res, email) => {
@@ -254,8 +259,14 @@ exports.loginPhone = (req, res, next) => {
   }
 };
 
+exports.check = async (req, res) => {
+  console.log(req.file);
+  res.status(200).json({ message: "allgood" });
+};
+
 exports.signup = async (req, res) => {
   // const confirmPassword=req.body.confirmPassword;
+  console.log(req.file);
   try {
     const {
       phone,
@@ -275,90 +286,76 @@ exports.signup = async (req, res) => {
       aconst,
     } = req.body;
     let otp = null;
+    // console.log(name, email, password);
     // let tokenGenerated=null;
-
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       const error = new Error("Validation failed");
       error.statusCode = 422;
       error.data = errors.array();
-      console.log(error, error[0]);
+      // console.log(error, error[0]);
       res.status(422).json({ message: errors.array() });
       throw error;
     }
+    let url = null;
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: `profile-${req.body.email.split("@")[0]}.jpg`,
+      Body: req.file.buffer,
+    };
+    const upload = s3.upload(params).promise();
+    upload
+      .then(async (data) => {
+        url = data.Location;
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const Newuser = new User({
+          email: email,
+          password: hashedPassword,
+          isverified: false,
+          name,
+          gender,
+          age,
+          residence,
+          phone,
+          community,
+          education,
+          occupation,
+          district,
+          mandal,
+          village,
+          pconst,
+          aconst,
+          profile: url,
+          resetVerified: false,
+        });
+        await Newuser.save();
+        console.log("details saved in the database");
+        otp = Math.floor(100000 + Math.random() * 900000);
+        const OTP = new Otp({
+          otp: otp,
+          email: email,
+        });
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const Newuser = new User({
-      email: email,
-      password: hashedPassword,
-      isverified: false,
-      name,
-      gender,
-      age,
-      residence,
-      phone,
-      community,
-      education,
-      occupation,
-      district,
-      mandal,
-      village,
-      pconst,
-      aconst,
-      resetVerified: false,
-    });
-    await Newuser.save();
-    console.log("details saved in the database");
-    otp = Math.floor(100000 + Math.random() * 900000);
-    const OTP = new Otp({
-      otp: otp,
-      email: email,
-    });
-
-    await OTP.save();
-    console.log(otp);
-    // const sendOtp = new AWS.SNS({ apiVersion: "2010-03-31" })
-    //   .publish({
-    //     Message: `${otp} is your BSP Learning verification code`,
-    //     PhoneNumber: "+91" + phone,
-    //     MessageAttributes: {
-    //       "AWS.SNS.SMS.SenderID": {
-    //         DataType: "String",
-    //         StringValue: "BSPVERIFY",
-    //       },
-    //     },
-    //   })
-    //   .promise();
-    // sendOtp
-    //   .then((response) => {
-    //     console.log(response);
-    //     res.status(200).json({
-    //       message: "OTP has been sent to your phone",
-    //       redirect: true,
-    //       email: email,
-    //     });
-    //   })
-    //   .catch((error) => {
-    //     const errorotp = new Error(error);
-    //     console.log(error);
-    //     res.status(400).json({
-    //       message: "otp not sent",
-    //     });
-    //     throw errorotp;
-    //   });
-    transporter.sendMail({
-      to: email,
-      from: "akhil@upgrate.in",
-      subject: "OTP Verification",
-      html: ` '<h1>Please Verify your account using this OTP: !</h1>
+        await OTP.save();
+        console.log(otp);
+        transporter.sendMail({
+          to: email,
+          from: "akhil@upgrate.in",
+          subject: "OTP Verification",
+          html: ` '<h1>Please Verify your account using this OTP: !</h1>
               <p>OTP:${otp}</p>'`,
-    });
-    res.status(200).json({
-      message: "OTP has been sent to your Email",
-      redirect: true,
-      email: email,
-    });
-    console.log("mail sent");
+        });
+        res.status(200).json({
+          message: "OTP has been sent to your Email",
+          redirect: true,
+          email: email,
+          profile: data.Location,
+        });
+        console.log("mail sent");
+      })
+      .catch((error) => {
+        throw error;
+      });
   } catch (error) {
     console.log(error);
   }
@@ -607,6 +604,7 @@ exports.login = async (req, res, next) => {
                 referesh_token: referesh_token,
                 username: user.name,
                 userId: user._id,
+                profile: user.profile,
               });
             } else {
               return res.status(400).json({ message: "password don't match" });

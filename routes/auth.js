@@ -5,23 +5,24 @@ const { check } = require("express-validator");
 const Auth = require("../Authentication/is-auth");
 const router = express.Router();
 const User = require("../model/user");
+const upload = require("multer")();
 
 router.post(
   "/signup",
+  upload.single("profile"),
   [
     check("email")
       .isEmail()
       .withMessage("Please enter a valid email")
       .custom((value, { req }) => {
+        console.log(req.body.name);
         return User.findOne({ email: value }).then((user) => {
           if (user) {
             return Promise.reject("Email or phone already exists!");
           }
         });
       }),
-
     check("password").trim().isLength({ min: 5 }),
-
     check("name").trim().not().isEmpty(),
   ],
   authController.signup
@@ -45,6 +46,7 @@ router.post(
       }),
     check("name").trim().not().isEmpty(),
   ],
+  upload.single("profile"),
   authController.signupPhone
 );
 router.post("/login_phone", authController.loginPhone);
@@ -71,6 +73,7 @@ router.post("/signup/otp-resend", authController.resendOtp);
 router.post("/signup/checkOtp", authController.resetOtpVerification);
 router.post("/signup/reset-password", authController.newPassword);
 router.post("/getUser", Auth.authentication, authController.getUser);
+router.post("/check", upload.single("profile"), authController.check);
 
 // google authentication route
 
