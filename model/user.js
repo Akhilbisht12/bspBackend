@@ -29,6 +29,7 @@ const userSchema = new Schema({
   pconst: String,
   aconst: String,
   profile: String,
+  createdAt: { type: Date, default: Date.now() },
   meetings: [
     {
       date: Date,

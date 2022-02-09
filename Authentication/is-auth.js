@@ -11,7 +11,6 @@ exports.authentication = (req, res, next) => {
     res.status(401).json({ message: "not authenticated" });
   } else {
     let access = access_token.split(" ")[1];
-    console.log(access);
     let payload;
     // console.log(access)
     try {
@@ -28,7 +27,7 @@ exports.authentication = (req, res, next) => {
       error.statusCode = 401;
       throw error;
     }
-    console.log("this is the payload of access token", payload);
+    // console.log("this is the payload of access token", payload);
     res.userID = payload["username"];
     next();
   }

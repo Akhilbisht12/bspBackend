@@ -3,6 +3,8 @@ const User = require("../model/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const api_key = require("../config/config");
+const Courses = require("../model/courses");
+const moment = require("moment");
 
 exports.adminSignup = async (req, res) => {
   try {
@@ -84,5 +86,97 @@ exports.pushMeeting = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(400).json({ message: "server error", error });
+  }
+};
+
+exports.getPlatiniumUsers = async (req, res) => {
+  try {
+    const users = await User.find({});
+    if (!users) throw new Error("Failed to get users from db");
+    let platusers = [];
+    const courses = await Courses.find({});
+    users.map((user) => {
+      let count = 0;
+      courses.map((course) => {
+        let check = false;
+        for (let index = 0; index < course.videoContent.length; index++) {
+          let video = course.videoContent[index];
+          if (!video.usersWatched.includes(user._id)) {
+            check = false;
+            break;
+          } else {
+            check = true;
+          }
+        }
+        check ? count++ : count;
+      });
+      count === courses.length ? platusers.push(user) : null;
+    });
+    res.status(200).json({ platusers, message: "Platinium users" });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: "failed to get platinium users", error });
+  }
+};
+
+exports.neutralInfluencersCount = async (req, res) => {
+  try {
+    const users = await User.find({});
+    let neutral = [];
+    users.map((user) => {
+      if (user.influencers.length !== 0) neutral.push(user);
+    });
+    res.status(200).json({ message: "Neutral Influencers", neutral });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(400)
+      .json({ message: "failed to fetch neutral influencers", error });
+  }
+};
+
+exports.swotInfluencers = async (req, res) => {
+  try {
+    const users = await User.find({});
+    let swot = [];
+    users.map((user) => {
+      if (user.swot.length !== 0) swot.push(user);
+    });
+    res.status(200).json({ message: "Swot Analysis", swot });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: "failed to fetch swot analysis" });
+  }
+};
+
+exports.usersTrend = async (req, res) => {
+  try {
+    const trendData = [
+      { count: 0 },
+      { count: 0 },
+      { count: 0 },
+      { count: 0 },
+      { count: 0 },
+      { count: 0 },
+      { count: 0 },
+      { count: 0 },
+      { count: 0 },
+      { count: 0 },
+      { count: 0 },
+      { count: 0 },
+    ];
+    const trend = await User.find({});
+    trend.map((user) => {
+      const month = moment(user.createdAt).format("MM");
+      const year = moment(user.createdAt).format("YY");
+      if (year === "22") {
+        console.log(month, month - 1);
+        trendData[month - 1].count++;
+      }
+    });
+    res.status(200).json({ message: "users trend", trendData });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: "failed to get users trend data", error });
   }
 };

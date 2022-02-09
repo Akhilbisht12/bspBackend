@@ -319,6 +319,7 @@ exports.signup = async (req, res) => {
           phone,
           community,
           education,
+          createdAt: Date.now(),
           occupation,
           district,
           mandal,
